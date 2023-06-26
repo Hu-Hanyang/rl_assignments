@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/run.py",
+            "args": [
+                "--mode=train",
+                "--env_config=data/envs/atari_pong.yaml",
+                "--agent_config=a3/atari_dqn_agent.yaml",
+                "--log_file=output/a3/Pong/log0.txt",
+                "--out_model_file=output/a3/Pong/model0.pt",
+                "--max_samples=3000000 "
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

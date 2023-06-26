@@ -124,7 +124,8 @@ class DQNAgent(base_agent.BaseAgent):
 
         # placeholder
         prob = 1.0
-
+        l = np.clip(self._sample_count/self._exp_anneal_samples, 0, 1)
+        prob = (1-l)*self._exp_prob_beg + l * self._exp_prob_end
         return prob
 
     def _sample_action(self, qs):
@@ -137,9 +138,14 @@ class DQNAgent(base_agent.BaseAgent):
         action.
         '''
         exp_prob = self._get_exp_prob()
+        sample = np.random.random_sample()  # [0.0, 1.0)
 
         # placeholder
         a = torch.zeros(qs.shape[0], device=self._device, dtype=torch.int64)
+        if sample > exp_prob:
+            a = torch.argmax(qs, dim=-1)
+        else:
+            a = torch.tensor([self._env.get_action_space().sample()]) 
         return a
     
     def _compute_tar_vals(self, r, norm_next_obs, done):
@@ -154,6 +160,7 @@ class DQNAgent(base_agent.BaseAgent):
         
         # placeholder
         tar_vals = torch.zeros_like(r)
+        tar_vals = r + self._discount * (1-done) * self._tar_model.eval_q(norm_next_obs).max(1)[0]
 
         return tar_vals
 
@@ -167,7 +174,8 @@ class DQNAgent(base_agent.BaseAgent):
         
         # placeholder
         loss = torch.zeros(1)
-        
+        Q = self._model.eval_q(norm_obs).gather(1, a).squeeze()
+        loss = torch.mean((tar_vals - Q)**2)
         return loss
     
     def _sync_tar_model(self):
@@ -177,5 +185,6 @@ class DQNAgent(base_agent.BaseAgent):
         HINT: self._model.parameters() can be used to retrieve a list of tensors containing
         the parameters of a model.
         '''
-        
+        for target_param, param in zip(self._tar_model.parameters(), self._model.parameters()):
+            target_param.data.copy_(param)
         return
